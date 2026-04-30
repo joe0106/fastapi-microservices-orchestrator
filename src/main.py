@@ -1,25 +1,26 @@
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
-from http import HTTPMethod
+from fastapi.responses import JSONResponse
+from http import HTTPMethod, HTTPStatus
+from .settings.config import settings as config
+import httpx
 
-METHODS = [HTTPMethod.GET, HTTPMethod.POST, HTTPMethod.PUT, HTTPMethod.DELETE]
+settings = config
+client = httpx.AsyncClient()
 
 app = FastAPI()
 
-@app.get("/")
-def hello_world():
-    return {"Hello": "world"}
+@app.get("/info")
+def sysinfo():
+    return JSONResponse(content={"app_mode": settings.app_mode})
 
-@app.api_route("/{service}/{path}", methods=METHODS)
+@app.api_route("/{service}/{path}", methods=[HTTPMethod.GET])
 async def generic_handler(service: str, path: str):
     if service == "service-a":
-        return RedirectResponse(url=f"/service-a/auth/{path}")
-    return {
-        "unknown service": f"/{service}/{path}"
-    }
-
-@app.get("/service-a/auth/{path}")
-def service_a(path: str):
-    return {
-        "service_a path": f"{path}"
-    }
+        url = f"{settings.order_service_url}/order/{path}"
+        try:
+            response = await client.get(url=url)
+            return JSONResponse(content=response.json(), status_code=response.status_code)
+        except Exception as e:
+            return JSONResponse(content={"exception": str(e)}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
+    else:
+        return JSONResponse(content={"unknown service": f"{service}"}, status_code=HTTPStatus.BAD_REQUEST)
