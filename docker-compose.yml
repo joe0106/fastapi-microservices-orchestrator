@@ -1,0 +1,16 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+    build: ./src/.
+    restart: always
+    command: fastapi run --port 8000
+    ports:
+      - 8000:8000
+
+  order-service:
+    container_name: order-service
+    build: ./OrderService/.
+    restart: always
+    command: fastapi run --port 8000
+    expose:
+      - 8000
