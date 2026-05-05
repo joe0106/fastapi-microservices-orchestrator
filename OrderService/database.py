@@ -1,4 +1,3 @@
-from collections import defaultdict
 from schemas import OrderCreate
 
 users = ["user-a", "user-b", "user-c"]
@@ -10,10 +9,10 @@ user_orders = {
 }
 
 order_items = {
-    "order-id-a": ["item-a1", "item-a2"],
-    "order-id-b1": ["item-b11", "item-b12"],
-    "order-id-b2": ["item-b21", "item-b22"],
-    "order-id-c": ["item-c1"],
+    "order-id-a": ["item1", "item2"],
+    "order-id-b1": ["item1", "item2"],
+    "order-id-b2": ["item2", "item3"],
+    "order-id-c": ["item2"],
 }
 
 class UserCrud:
