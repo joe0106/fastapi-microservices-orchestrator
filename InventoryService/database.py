@@ -12,3 +12,7 @@ class ItemCrud:
             return {search_item: items[search_item]}
         else:
             return items
+        
+    def decrement_stock(self, item: str):
+        if item in items:
+            items[item] = int(items[item]) - 1

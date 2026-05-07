@@ -3,12 +3,23 @@ from fastapi.responses import JSONResponse
 from http import HTTPStatus
 from database import ItemCrud
 from typing import Optional
-from mq_consumer import PikaClient
+from mq_consumer import Aio_Pika_Client
+from contextlib import asynccontextmanager
+import threading
 
-app = FastAPI()
 ic = ItemCrud()
-pika_client = PikaClient()
-#pika_client.run()
+aio_pika_client = Aio_Pika_Client(ItemCrud=ic)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    aio_pika_thread = threading.Thread(target=aio_pika_client.run, daemon=True)
+    aio_pika_thread.start()
+    yield
+    aio_pika_client.stop
+
+
+app = FastAPI(lifespan=lifespan)
+
 
 @app.get("/items/{item_id}")
 @app.get("/items")
