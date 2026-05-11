@@ -3,29 +3,41 @@ from fastapi.responses import JSONResponse
 from http import HTTPStatus
 from database import ItemCrud
 from typing import Optional
-from mq_consumer import Aio_Pika_Client
+from mq_consumer import RabbitMQConsumer
 from contextlib import asynccontextmanager
-import threading
+import os
+import asyncio
 
 ic = ItemCrud()
-aio_pika_client = Aio_Pika_Client(ItemCrud=ic)
+# Allow overriding RabbitMQ URL via environment variable
+AMQP_URL = os.getenv("AMQP_URL", "amqp://root:1234@127.0.0.1/")
+consumer = RabbitMQConsumer(ic, AMQP_URL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    aio_pika_thread = threading.Thread(target=aio_pika_client.run, daemon=True)
-    aio_pika_thread.start()
+    # Start the background consumer
+    task = asyncio.create_task(consumer.start())
     yield
-    aio_pika_client.stop
-
+    # Clean up
+    await consumer.stop()
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 app = FastAPI(lifespan=lifespan)
-
 
 @app.get("/items/{item_id}")
 @app.get("/items")
 async def get_items(item_id: Optional[str] = None):
     try:
         result = ic.get_item_remain(item_id)
+        if result is None:
+             return JSONResponse(
+                content={"message": "item not found"},
+                status_code=HTTPStatus.NOT_FOUND
+            )
         return JSONResponse(
             content=result,
             status_code=HTTPStatus.OK

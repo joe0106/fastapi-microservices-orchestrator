@@ -1,63 +1,72 @@
-from aio_pika import connect_robust
-from aio_pika.abc import (
-    AbstractIncomingMessage,
-    AbstractRobustChannel,
-    AbstractRobustConnection
-)
+import aio_pika
+import json
 from database import ItemCrud
-# ref: https://github.com/pika/pika/blob/main/examples/asynchronous_publisher_example.py
-# ref: https://www.rabbitmq.com/tutorials/tutorial-one-python
-# ref: https://itracer.medium.com/rabbitmq-publisher-and-consumer-with-fastapi-175fe87aefe1
-class Aio_Pika_Client:
 
-    def __init__(self, ItemCrud: ItemCrud):
-        self._ampq_url: str = 'ampq"//root:1234@127.0.0.1:5672/'
-        self._connection: AbstractRobustConnection = None
-        self._channel: AbstractRobustChannel = None
-        self._stopping = False
-        self._ic = ItemCrud
-        self._consumer_tag = None
-        self._queue = None
-        self._queue_name = 'new-order'
-        # self.connection = pika.BlockingConnection(
-        #     pika.ConnectionParameters(self.parameters)
-        # )
-        # self.channel = self.connection.channel()
-        # self.publish_queue = self.channel.queue_declare(queue=self.publish_queue_name)
-        # self.response = None
-        # self.process_callable = process_callable
+class RabbitMQConsumer:
+    def __init__(self, ic: ItemCrud, amqp_url: str = "amqp://root:1234@127.0.0.1/"):
+        self.ic = ic
+        self.amqp_url = amqp_url
+        self.connection = None
+        self.channel = None
+        self.queue = None
 
     async def connect(self):
-        self._connection = await connect_robust(url=self._ampq_url)
-        self._channel = await self._connection.channel()
-        self._queue = await self._channel.declare_queue(
-            name=self._queue_name,
-            durable=True
-        )
-        await self._queue.consume(self.on_message)
+        print(f"Connecting to RabbitMQ at {self.amqp_url}")
+        self.connection = await aio_pika.connect_robust(self.amqp_url)
+        self.channel = await self.connection.channel()
+        # Set QoS to process one message at a time
+        await self.channel.set_qos(prefetch_count=1)
+        self.queue = await self.channel.declare_queue("new-order", durable=True)
+        print("Connected to RabbitMQ and queue 'new-order' declared.")
 
-    async def on_message(self, msg: AbstractIncomingMessage):
-        async with msg.process():
-            print("received message")
+    async def process_message(self, message: aio_pika.IncomingMessage):
+        async with message.process():
+            try:
+                body = message.body.decode()
+                data = json.loads(body)
+                print(f" [x] Received message: {data}")
+                
+                # The producer sends: { user_id: [ { order_id: [items] } ] }
+                # We need to extract all items from this structure
+                all_items = []
+                for user_key in data:
+                    user_data = data[user_key]
+                    if isinstance(user_data, list):
+                        for order_entry in user_data:
+                            if isinstance(order_entry, dict):
+                                for order_id in order_entry:
+                                    items = order_entry[order_id]
+                                    if isinstance(items, list):
+                                        all_items.extend(items)
+                
+                if all_items:
+                    print(f"Extract items to decrement: {all_items}")
+                    self.ic.decrement_stock(all_items)
+                else:
+                    # Fallback for flat format if we ever change it
+                    items = data.get("items", [])
+                    if items:
+                        self.ic.decrement_stock(items)
+                
+            except Exception as e:
+                print(f"Error processing message: {e}")
 
-            if msg.body:
-                orders = msg.body.values() #the user's order objects
-                order_id = orders.values() #the order ids in the user's order objects
-                for order_items in order_id: #the items in the order ids that ar in the users's order object
-                    self._ic.decrement_stock(order_items)
-                #手動對rabbitMQ送出ack，通知其可以準備刪掉已處理的訊息
-                msg.ack(multiple=False)
-
-                print("done processing message")
-            else:
-                print("no body to process message")
-
-    async def run(self):
-        self._connection = await self.connect()
+    async def consume(self):
+        if not self.queue:
+            await self.connect()
+        
+        print(" [*] Waiting for messages. To exit press CTRL+C")
+        await self.queue.consume(self.process_message)
 
     async def stop(self):
-        self._stopping = True
-        if self._channel is not None:
-            self._channel.close()
-        if self._connection is not None:
-            self._connection.close()
+        if self.connection:
+            await self.connection.close()
+            print("RabbitMQ connection closed.")
+
+    async def start(self):
+        try:
+            await self.connect()
+            await self.consume()
+        except Exception as e:
+            print(f"Failed to start RabbitMQ consumer: {e}")
+            # In a real app, you might want to retry here
