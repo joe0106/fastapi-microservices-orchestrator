@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from http import HTTPStatus
-from database import ItemCrud
+from InventoryService.database import ItemCrud
 from typing import Optional
-from mq_consumer import RabbitMQConsumer
+from InventoryService.mq_consumer import InventoryConsumer
 from contextlib import asynccontextmanager
 import os
 import asyncio
@@ -11,7 +11,7 @@ import asyncio
 ic = ItemCrud()
 # Allow overriding RabbitMQ URL via environment variable
 AMQP_URL = os.getenv("AMQP_URL", "amqp://root:1234@127.0.0.1/")
-consumer = RabbitMQConsumer(ic, AMQP_URL)
+consumer = InventoryConsumer(ic, AMQP_URL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

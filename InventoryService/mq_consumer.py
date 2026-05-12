@@ -1,12 +1,13 @@
 import aio_pika
 import json
-from database import ItemCrud
+from InventoryService.database import ItemCrud
 
-class RabbitMQConsumer:
-    def __init__(self, ic: ItemCrud, amqp_url: str = "amqp://root:1234@127.0.0.1/"):
-        self.ic = ic
+class InventoryConsumer:
+    def __init__(self, crud: ItemCrud, amqp_url: str = "amqp://root:1234@127.0.0.1/"):
+        self.crud = crud
         self.amqp_url = amqp_url
         self.connection = None
+        self.exchange = None
         self.channel = None
         self.queue = None
 
@@ -16,7 +17,11 @@ class RabbitMQConsumer:
         self.channel = await self.connection.channel()
         # Set QoS to process one message at a time
         await self.channel.set_qos(prefetch_count=1)
+        self.exchange = await self.channel.declare_exchange(name="orders", type="fanout")
         self.queue = await self.channel.declare_queue("new-order", durable=True)
+        #bind exchange to channel
+        await self.queue.bind(self.exchange)
+
         print("Connected to RabbitMQ and queue 'new-order' declared.")
 
     async def process_message(self, message: aio_pika.IncomingMessage):
@@ -41,12 +46,12 @@ class RabbitMQConsumer:
                 
                 if all_items:
                     print(f"Extract items to decrement: {all_items}")
-                    self.ic.decrement_stock(all_items)
+                    self.crud.decrement_stock(all_items)
                 else:
                     # Fallback for flat format if we ever change it
                     items = data.get("items", [])
                     if items:
-                        self.ic.decrement_stock(items)
+                        self.crud.decrement_stock(items)
                 
             except Exception as e:
                 print(f"Error processing message: {e}")
