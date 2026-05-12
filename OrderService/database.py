@@ -33,8 +33,7 @@ class UserCrud:
 
         temp_list = []
         for item in new_order.items:
-            new_item = f"{item}-{new_order.user}-auto"
-            temp_list.append(new_item)
+            temp_list.append(item)
 
         order_items[new_order_id] = temp_list
 
