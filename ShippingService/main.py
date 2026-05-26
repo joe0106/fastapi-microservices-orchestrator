@@ -3,9 +3,9 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from http import HTTPStatus
 from typing import Optional
-from ShippingService.mq_consumer import ShippingConsumer
+from mq_consumer import ShippingConsumer
 from contextlib import asynccontextmanager
-from ShippingService.database import ShippingCrud
+from database import ShippingCrud
 import os
 import asyncio
 
