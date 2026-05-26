@@ -20,3 +20,7 @@ COPY --from=BUILD /temp/requirements.txt /usr/src/requirements.txt
 RUN pip install --no-cache-dir -r /usr/src/requirements.txt
 
 COPY . /usr/src
+
+ENV rmqhost=rabbitmq
+
+CMD [ "fastapi", "run", "--port", "8001" ]

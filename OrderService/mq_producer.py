@@ -1,10 +1,13 @@
 import pika
 import json
+import os
 from schemas import OrderCreateResponse
+
+rmqhost = os.getenv("rmqhost", "127.0.0.1")
 
 credentials = pika.PlainCredentials('root', '1234')
 parameters = pika.ConnectionParameters(
-    host='127.0.0.1',
+    host=rmqhost,
     port='5672',
     credentials=credentials
 )
