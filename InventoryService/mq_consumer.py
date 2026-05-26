@@ -1,6 +1,6 @@
 import aio_pika
 import json
-from InventoryService.database import ItemCrud
+from database import ItemCrud
 
 class InventoryConsumer:
     def __init__(self, crud: ItemCrud, amqp_url: str = "amqp://root:1234@127.0.0.1/"):

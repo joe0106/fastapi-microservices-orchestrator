@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from http import HTTPStatus
-from InventoryService.database import ItemCrud
+from database import ItemCrud
 from typing import Optional
-from InventoryService.mq_consumer import InventoryConsumer
+from mq_consumer import InventoryConsumer
 from contextlib import asynccontextmanager
 import os
 import asyncio
