@@ -6,11 +6,60 @@ services:
     command: fastapi run --port 8000
     ports:
       - 8000:8000
+    depends_on:
+      - order-service
+      - inventory-service
+      - shipping-service
+      - rabbitmq
+    environment:
+      - ORDER_SERVICE_URL=http://order-service:8001
+      - INVENTORY_SERVICE_URL=http://inventory-service:8002
+      - SHIPPING_SERVICE_URL=http://shipping-service:8003
 
   order-service:
     container_name: order-service
     build: ./OrderService/.
     restart: always
-    command: fastapi run --port 8000
-    expose:
-      - 8000
+    command: fastapi run --port 8001
+    ports:
+      - "8001:8001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  inventory-service:
+    container_name: inventory-service
+    build: ./InventoryService/.
+    restart: always
+    command: fastapi run --port 8002
+    ports:
+      - "8002:8002"
+    depends_on:
+      - order-service
+
+  shipping-service:
+    container_name: shipping-service
+    build: ./ShippingService/.
+    restart: always
+    command: fastapi run --port 8003
+    ports:
+      - "8003:8003"
+    depends_on:
+      - order-service
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:management
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=1234
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
