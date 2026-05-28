@@ -3,7 +3,6 @@ services:
     container_name: api-gateway
     build: ./src/.
     restart: always
-    command: fastapi run --port 8000
     ports:
       - 8000:8000
     depends_on:

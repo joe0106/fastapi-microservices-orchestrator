@@ -5,5 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "pydantic_settings"
+]
+
+[dependency-groups]
+dev = [
     "fastapi[standard]>=0.136.1",
 ]

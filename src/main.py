@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Body
 from fastapi.responses import JSONResponse
 from http import HTTPMethod, HTTPStatus
-from .settings.config import settings as config
+from settings.config import settings as config
 import httpx
 
 settings = config
