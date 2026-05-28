@@ -4,14 +4,14 @@ from http import HTTPStatus
 from contextlib import asynccontextmanager
 from database import UserCrud
 from schemas import OrderCreate, OrderCreateResponse
-from mq_producer import connection, new_order_queue_publish
+from mq_producer import new_order_queue_publish
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    if connection.is_open:
-        connection.close()
-        print('RabbitMQ connection closed')
+    # if connection.is_open:
+    #     connection.close()
+    #     print('RabbitMQ connection closed')
 
 app = FastAPI(lifespan=lifespan)
 
