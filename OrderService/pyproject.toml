@@ -15,4 +15,17 @@ dependencies = [
 [dependency-groups]
 dev = [
     "fastapi[standard]>=0.136.1",
+    "ruff>=0.15.15",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "FAST"
+]
+
+[tool.ruff.format]
+quote-style = "single"
