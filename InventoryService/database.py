@@ -1,8 +1,5 @@
-items = {
-    "item1": 3,
-    "item2": 3,
-    "item3": 3
-}
+items = {'item1': 3, 'item2': 3, 'item3': 3}
+
 
 class ItemCrud:
     def get_item_remain(self, search_item: str = None):
@@ -18,8 +15,8 @@ class ItemCrud:
             if item_id in items:
                 if items[item_id] > 0:
                     items[item_id] -= 1
-                    print(f"Decremented stock for {item_id}. New stock: {items[item_id]}")
+                    print(f'Decremented stock for {item_id}. New stock: {items[item_id]}')
                 else:
-                    print(f"Stock for {item_id} is already 0.")
+                    print(f'Stock for {item_id} is already 0.')
             else:
-                print(f"Item {item_id} not found in inventory.")
+                print(f'Item {item_id} not found in inventory.')
