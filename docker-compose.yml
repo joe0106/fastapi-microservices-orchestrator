@@ -19,32 +19,35 @@ services:
     container_name: order-service
     build: ./OrderService/.
     restart: always
-    command: fastapi run --port 8001
     ports:
       - "8001:8001"
     depends_on:
       rabbitmq:
         condition: service_healthy
+    environment:
+      - rmqhost=rabbitmq
 
   inventory-service:
     container_name: inventory-service
     build: ./InventoryService/.
     restart: always
-    command: fastapi run --port 8002
     ports:
       - "8002:8002"
     depends_on:
       - order-service
+    environment:
+      - AMQP_URL=amqp://root:1234@rabbitmq/
 
   shipping-service:
     container_name: shipping-service
     build: ./ShippingService/.
     restart: always
-    command: fastapi run --port 8003
     ports:
       - "8003:8003"
     depends_on:
       - order-service
+    environment:
+      - AMQP_URL=amqp://root:1234@rabbitmq/
 
   rabbitmq:
     container_name: rabbitmq
