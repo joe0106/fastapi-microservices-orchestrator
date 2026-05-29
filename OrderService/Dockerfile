@@ -1,26 +1,22 @@
-FROM python:3.13-slim as BUILD
+FROM python:3.13-slim as builder
 
-WORKDIR /temp
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN pip install uv
+WORKDIR /app
 
-COPY ./pyproject.toml /temp/pyproject.toml
-COPY ./uv.lock /temp/uv.lock
+COPY pyproject.toml uv.lock ./
 
-RUN uv export --format requirements.txt -o requirements.txt --no-cache
+RUN uv sync --frozen --no-dev
 
-FROM python:3.13-slim 
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY . .
+
+COPY --from=builder /app/.venv /app/.venv
 
 ENV PYTHONDONTWRITEBYTECODE 1
+ENV PATH="/app/.venv/bin:$PATH"
 
-WORKDIR /usr/src
-
-COPY --from=BUILD /temp/requirements.txt /usr/src/requirements.txt
-
-RUN pip install --no-cache-dir -r /usr/src/requirements.txt
-
-COPY . /usr/src
-
-ENV rmqhost=rabbitmq
-
-CMD [ "fastapi", "run", "--port", "8001" ]
+CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
