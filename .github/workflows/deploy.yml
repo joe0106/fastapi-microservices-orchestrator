@@ -5,7 +5,11 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
+      - '.github/workflows/deploy.yml'
+      - 'src/ApiGateway/**'
+      - 'src/InventoryService/**'
+      - 'src/OrderService/**'
+      - 'src/ShippingService/**'
 jobs:
   deploy:
     runs-on: self-hosted
