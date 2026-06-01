@@ -15,7 +15,15 @@ jobs:
     runs-on: self-hosted
     strategy:
       matrix:
-        service: [api-gateway, order-service, inventory-service, shipping-service]
+        include:
+          - service: api-gateway
+            directory: ApiGateway
+          - service: order-service
+            directory: OrderService
+          - service: inventory-service
+            directory: InventoryService
+          - service: shipping-service
+            directory: ShippingService
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -40,7 +48,7 @@ jobs:
       - name: Build Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./src/${{ matrix.service }}
+          context: ./src/${{ matrix.directory }}
           file: Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
