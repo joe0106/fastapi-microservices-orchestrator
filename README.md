@@ -1,6 +1,6 @@
 # Microservice Proof of Concept
 
-![架構圖](src/microservice-poc.png)
+![架構圖](microservice-poc.png)
 
 ## Microservice breakdown
 
