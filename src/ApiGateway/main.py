@@ -57,7 +57,7 @@ async def generic_handler(request: Request, service: str, path: str):
 
 
 @app.post('/{service}/{path:path}')
-async def generic_handler(request: Request, service: str, path: str, body: Annotated[dict, Body(None)]):  # noqa: F811, E501 # fmt: skip
+async def generic_handler(request: Request, service: str, path: str, body: Annotated[dict, Body()] = None):  # noqa: F811, E501 # fmt: skip
     if service in settings.service_map().keys():
         url = settings.build_url(service, path)
         try:
