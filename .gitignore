@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+.DS_Store
 
 # Virtual environments
 .venv
@@ -14,6 +15,7 @@ GEMINI.md
 
 # vscode
 .vscode
+*.code-workspace
 
 # env files
 .env*

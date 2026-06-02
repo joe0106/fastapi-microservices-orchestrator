@@ -11,6 +11,7 @@ services:
       - shipping-service
       - rabbitmq
     environment:
+      - APP_MODE=prod
       - ORDER_SERVICE_URL=http://order-service:8001
       - INVENTORY_SERVICE_URL=http://inventory-service:8002
       - SHIPPING_SERVICE_URL=http://shipping-service:8003
