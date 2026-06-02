@@ -1,7 +1,7 @@
 services:
   api-gateway:
     container_name: api-gateway
-    image: ${IMAGE_REPO}/api-gateway:latest
+    build: ./src/ApiGateway/.
     restart: always
     ports:
       - 8000:8000
@@ -17,7 +17,7 @@ services:
 
   order-service:
     container_name: order-service
-    image: ${IMAGE_REPO}/order-service:latest
+    build: ./src/OrderService/.
     restart: always
     ports:
       - "8001:8001"
@@ -29,7 +29,7 @@ services:
 
   inventory-service:
     container_name: inventory-service
-    image: ${IMAGE_REPO}/inventory-service:latest
+    build: ./src/InventoryService/.
     restart: always
     ports:
       - "8002:8002"
@@ -40,7 +40,7 @@ services:
 
   shipping-service:
     container_name: shipping-service
-    image: ${IMAGE_REPO}/shipping-service:latest
+    build: ./src/ShippingService/.
     restart: always
     ports:
       - "8003:8003"

@@ -1,11 +1,11 @@
-name: Deploy on Digital Ocean self-hosted runner
+name: CI on Digital Ocean self-hosted runner
 
 on:
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/deploy.yml'
+      - '.github/workflows/ci.yml'
       - 'src/ApiGateway/**'
       - 'src/InventoryService/**'
       - 'src/OrderService/**'
@@ -29,6 +29,7 @@ jobs:
             directory: InventoryService
           - service: shipping-service
             directory: ShippingService
+            
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
