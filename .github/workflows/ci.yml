@@ -6,11 +6,9 @@ on:
       - main
     paths:
       - '.github/workflows/ci.yml'
-      - 'src/ApiGateway/**'
-      - 'src/InventoryService/**'
-      - 'src/OrderService/**'
-      - 'src/ShippingService/**'
-      
+      - 'src/**'
+  workflow_dispatch:
+  
 jobs:
   deploy:
     runs-on: self-hosted
@@ -20,6 +18,7 @@ jobs:
       packages: write
 
     strategy:
+      max-parallel: 1
       matrix:
         include:
           - service: api-gateway
@@ -32,14 +31,20 @@ jobs:
             directory: ShippingService
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Debug Info
         run: |
           echo "Running on:"
           hostname
           whoami
+
+      - name: Prepare Image Metadata
+        id: meta
+        run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "image_path=ghcr.io/${REPO}/${{ matrix.service }}" >> $GITHUB_OUTPUT
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -58,3 +63,5 @@ jobs:
           context: ./src/${{ matrix.directory }}
           push: true
           tags: ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
