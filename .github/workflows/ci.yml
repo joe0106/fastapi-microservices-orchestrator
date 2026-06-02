@@ -10,6 +10,7 @@ on:
       - 'src/InventoryService/**'
       - 'src/OrderService/**'
       - 'src/ShippingService/**'
+      
 jobs:
   deploy:
     runs-on: self-hosted
@@ -29,7 +30,7 @@ jobs:
             directory: InventoryService
           - service: shipping-service
             directory: ShippingService
-            
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

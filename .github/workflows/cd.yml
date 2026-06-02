@@ -32,9 +32,11 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Deploy Docker compose
+        env:
+          IMAGE_REPO: ghcr.io/${{ github.repository }}
         run: |
           docker compose pull
-          IMAGE_REPO=ghcr.io/${{ github.repository }} docker compose up -d --remove-orphans
+          docker compose up -d --remove-orphans
 
       - name: Clean up local image
         if: always()
