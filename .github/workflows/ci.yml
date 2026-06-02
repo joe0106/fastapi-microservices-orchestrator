@@ -1,4 +1,4 @@
-name: CI on Digital Ocean self-hosted runner
+name: CI on Digital Ocean self-hosted runner 
 
 on:
   push:
