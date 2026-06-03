@@ -48,31 +48,18 @@ jobs:
           hostname
           whoami
 
-      - name: Prepare Image Metadata
-        id: meta
-        run: |
-          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "image_path=ghcr.io/${REPO}/${{ matrix.service }}" >> $GITHUB_OUTPUT
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login GHCR, Build and Push
+        run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG="ghcr.io/${REPO}/${{ matrix.service }}:latest"
 
-      # docker buildx initialize
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src/${{ matrix.directory }}
-          push: true
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          docker buildx build ./src/${{ matrix.directory }} \
+            --tag "$IMAGE_TAG" \
+            --push \
+            --cache-from "type=gha,scope=${{ matrix.service }}" \
+            --cache-to "type=gha,mode=max,scope=${{ matrix.service }}"
