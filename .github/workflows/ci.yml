@@ -20,9 +20,11 @@ jobs:
         run: uv install ruff
 
       - name: Run Ruff
-        run: uv run ruff check . --output-format=github
+        run: uv run ruff check --output-format=github .
 
   build-and-push:
+    needs: lint
+
     runs-on: self-hosted
 
     permissions:
